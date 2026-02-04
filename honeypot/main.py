@@ -732,6 +732,7 @@ Don't reveal you know it's a scam. Sound natural, use casual language."""
                         # List of models to try in order of preference
                         # based on what we saw available in the user's key
                         candidate_models = [
+                            "models/gemini-2.5-flash", # Newest from test_key.py
                             "models/gemini-2.0-flash", # Exact match from test_key.py
                             "gemini-2.0-flash",        # Alias
                             "gemini-1.5-flash",        # Standard
@@ -743,13 +744,13 @@ Don't reveal you know it's a scam. Sound natural, use casual language."""
 
                         for model_name in candidate_models:
                             try:
-                                # print(f"👉 Trying model: {model_name}...", flush=True) 
+                                print(f"👉 Trying model: {model_name}...", flush=True) 
                                 model = genai.GenerativeModel(model_name)
                                 gemini_response = await model.generate_content_async(prompt)
                                 print(f"✅ Success with {model_name}", flush=True)
                                 break # Stop if successful
                             except Exception as e:
-                                # print(f"⚠️ {model_name} failed: {e}")
+                                print(f"⚠️ {model_name} failed: {e}", flush=True)
                                 last_error = e
                         
                         if not gemini_response:
