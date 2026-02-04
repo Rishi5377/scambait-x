@@ -1,0 +1,14 @@
+# Render Blueprint Configuration
+# Deploy with: Connect GitHub repo to Render
+
+services:
+  - type: web
+    name: scambait-x-honeypot
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn honeypot.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false  # Set manually in Render dashboard
+      - key: PYTHON_VERSION
+        value: "3.11"

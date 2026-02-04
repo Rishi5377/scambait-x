@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎤 ScamBait-X Live Demo</title>
+    <link rel="stylesheet" href="/static/voice.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">🎤</span>
+                <h1>ScamBait-X <span class="version">Live Demo</span></h1>
+            </div>
+            <div class="demo-mode-badge">
+                <span>🔴 YOU = SCAMMER</span>
+            </div>
+            <div class="status-badge" id="connectionStatus">
+                <span class="status-dot"></span>
+                <span>Connecting...</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Call Control Panel -->
+            <section class="call-panel">
+                <div class="call-button-container">
+                    <button class="call-button" id="callButton" onclick="toggleCall()">
+                        <span class="call-icon" id="callIcon">📞</span>
+                        <span class="call-text" id="callText">Answer Call</span>
+                    </button>
+                    <div class="call-status" id="callStatus">Click to simulate incoming call</div>
+                </div>
+
+                <!-- Scam Detection Meter -->
+                <div class="meter-section">
+                    <div class="meter-header">
+                        <span class="meter-label">SCAM DETECTION</span>
+                        <span class="meter-value" id="scamScore">0%</span>
+                    </div>
+                    <div class="meter-bar">
+                        <div class="meter-fill" id="scamMeter"></div>
+                        <div class="meter-threshold"></div>
+                    </div>
+                    <div class="meter-labels">
+                        <span>Safe</span>
+                        <span class="threshold-label">60% Threshold</span>
+                        <span>Scammer</span>
+                    </div>
+                </div>
+
+                <!-- Mode Indicator -->
+                <div class="mode-indicator" id="modeIndicator">
+                    <div class="mode-badge normal" id="normalMode">
+                        <span class="mode-dot"></span>
+                        <span>Normal Mode</span>
+                    </div>
+                    <div class="mode-badge ai hidden" id="aiMode">
+                        <span class="mode-dot"></span>
+                        <span>🤖 AI Agent Active</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Transcription Panel -->
+            <section class="panel transcription-panel">
+                <div class="panel-header">
+                    <h2>📝 Live Transcription</h2>
+                    <span class="listening-indicator" id="listeningIndicator">
+                        <span class="pulse"></span>
+                        Listening...
+                    </span>
+                </div>
+                <div class="transcription-content" id="transcriptionContent">
+                    <p class="placeholder">Speak into your microphone...</p>
+                </div>
+                <div class="interim-text" id="interimText"></div>
+            </section>
+
+            <!-- Two Column Layout -->
+            <div class="two-columns">
+                <!-- AI Response Panel -->
+                <section class="panel ai-panel">
+                    <div class="panel-header">
+                        <h2>🤖 AI Agent Response</h2>
+                        <button class="speak-button" id="speakButton" onclick="speakResponse()" disabled>
+                            🔊 Speak
+                        </button>
+                    </div>
+                    <div class="ai-content" id="aiContent">
+                        <p class="placeholder">AI will respond when scammer is detected...</p>
+                    </div>
+                    <div class="ai-status" id="aiStatus"></div>
+                </section>
+
+                <!-- Extracted Entities Panel -->
+                <section class="panel entities-panel">
+                    <div class="panel-header">
+                        <h2>🎯 Extracted Intel</h2>
+                        <span class="entity-count" id="entityCount">0 items</span>
+                    </div>
+                    <div class="entities-content" id="entitiesContent">
+                        <p class="placeholder">Entities will appear here...</p>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Detection Log -->
+            <section class="panel log-panel">
+                <div class="panel-header">
+                    <h2>📊 Detection Log</h2>
+                    <button class="clear-button" onclick="clearLog()">Clear</button>
+                </div>
+                <div class="log-content" id="logContent">
+                    <div class="log-entry info">
+                        <span class="log-time">--:--:--</span>
+                        <span class="log-message">System ready. Click "Start Call" to begin.</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Persona is auto-selected: elderly_widow (Mrs. Kamala) -->
+    </div>
+
+    <script src="/static/voice.js"></script>
+</body>
+
+</html>

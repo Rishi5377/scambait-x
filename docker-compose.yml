@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  # Main Application
+  scambait:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: scambait-x
+    ports:
+      - "8000:8000"
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://scambait:scambait123@postgres:5432/scambait
+      - CELERY_BROKER_URL=redis://redis:6379/1
+    volumes:
+      - ./frontend:/app/frontend:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # Redis - Session Cache & Celery Broker
+  redis:
+    image: redis:7-alpine
+    container_name: scambait-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL - Intelligence Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: scambait-postgres
+    environment:
+      POSTGRES_DB: scambait
+      POSTGRES_USER: scambait
+      POSTGRES_PASSWORD: scambait123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U scambait -d scambait" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Celery Worker - Background Processing
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: scambait-celery
+    command: celery -A honeypot.tasks worker --loglevel=info
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://scambait:scambait123@postgres:5432/scambait
+      - CELERY_BROKER_URL=redis://redis:6379/1
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  postgres_data:

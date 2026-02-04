@@ -1,0 +1,35 @@
+# Ignore venv and cache
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Ignore git
+.git/
+.gitignore
+
+# Ignore IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore test files
+tests/
+*.test.py
+pytest.ini
+
+# Ignore docs that aren't needed in image
+*.md
+!README.md
+LICENSE
+
+# Ignore Docker files (not needed inside container)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Ignore local env examples
+.env.example

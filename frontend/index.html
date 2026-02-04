@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScamBait-X | Honeypot Control Center</title>
+    <meta name="description" content="Agentic honeypot system for scam intelligence gathering">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <span class="logo">🎣</span>
+                <h1>ScamBait-X</h1>
+                <span class="subtitle">Honeypot Control Center</span>
+            </div>
+            <div class="header-right">
+                <div class="live-indicator" id="liveIndicator">
+                    <span class="live-dot"></span>
+                    <span class="live-text">OFFLINE</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Control Bar -->
+        <div class="control-bar">
+            <div class="control-group">
+                <label for="personaSelect">Persona:</label>
+                <select id="personaSelect">
+                    <option value="">Select Persona...</option>
+                    <option value="elderly_widow">👵 Mrs. Kamala Sharma (68, Widow)</option>
+                    <option value="young_professional">👨‍💻 Arjun Mehta (28, Developer)</option>
+                    <option value="small_business_owner">👩‍💼 Priya Patel (45, Business Owner)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="scamSelect">Mock Scam:</label>
+                <select id="scamSelect">
+                    <option value="">Manual Mode</option>
+                    <option value="lottery">🎰 Lottery Scam</option>
+                    <option value="upi_fraud">💳 UPI/KYC Fraud</option>
+                    <option value="tech_support">🖥️ Tech Support Scam</option>
+                </select>
+            </div>
+            <div class="control-actions">
+                <button class="btn btn-primary" id="startBtn">▶️ Start Session</button>
+                <button class="btn btn-danger" id="endBtn" disabled>⏹️ End</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Conversation Panel -->
+            <section class="conversation-panel">
+                <div class="panel-header">
+                    <h2>💬 Conversation</h2>
+                    <div class="session-info">
+                        <span id="sessionTimer">00:00</span>
+                        <span class="divider">|</span>
+                        <span id="turnCount">Turn: 0</span>
+                    </div>
+                </div>
+                <div class="messages-container" id="messagesContainer">
+                    <div class="empty-state">
+                        <p>Select a persona and start a session to begin</p>
+                    </div>
+                </div>
+                <!-- Manual Input -->
+                <div class="input-container" id="inputContainer" style="display: none;">
+                    <input type="text" id="scammerInput" placeholder="Type scammer message..." />
+                    <button class="btn btn-send" id="sendBtn">Send</button>
+                </div>
+            </section>
+
+            <!-- Extraction Panel -->
+            <aside class="extraction-panel">
+                <div class="panel-header">
+                    <h2>📊 Extraction Panel</h2>
+                </div>
+                
+                <!-- Mode Indicator -->
+                <div class="mode-indicator" id="modeIndicator">
+                    <span class="mode-icon">🐢</span>
+                    <span class="mode-text">PATIENCE</span>
+                </div>
+
+                <!-- Entities -->
+                <div class="entity-section">
+                    <h3>📱 UPI IDs</h3>
+                    <ul class="entity-list" id="upiList">
+                        <li class="empty">No UPI IDs extracted</li>
+                    </ul>
+                </div>
+
+                <div class="entity-section">
+                    <h3>📞 Phone Numbers</h3>
+                    <ul class="entity-list" id="phoneList">
+                        <li class="empty">No phone numbers extracted</li>
+                    </ul>
+                </div>
+
+                <div class="entity-section">
+                    <h3>🏦 Bank Accounts</h3>
+                    <ul class="entity-list" id="bankList">
+                        <li class="empty">No bank accounts extracted</li>
+                    </ul>
+                </div>
+
+                <div class="entity-section">
+                    <h3>🔗 Suspicious URLs</h3>
+                    <ul class="entity-list" id="urlList">
+                        <li class="empty">No URLs extracted</li>
+                    </ul>
+                </div>
+
+                <div class="entity-section">
+                    <h3>💰 Crypto Addresses</h3>
+                    <ul class="entity-list" id="cryptoList">
+                        <li class="empty">No crypto addresses extracted</li>
+                    </ul>
+                </div>
+
+                <!-- Actions -->
+                <div class="panel-actions">
+                    <button class="btn btn-secondary" id="downloadBtn" disabled>📥 Download Report</button>
+                </div>
+            </aside>
+        </main>
+
+        <!-- Toast Container -->
+        <div class="toast-container" id="toastContainer"></div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
