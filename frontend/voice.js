@@ -7,7 +7,7 @@
 let isListening = false;
 let recognition = null;
 let ws = null;
-let currentPersona = 'elderly_widow';
+let currentPersona = 'young_professional';
 let scamScore = 0;
 let isAIActive = false;
 let transcriptHistory = [];
@@ -500,7 +500,7 @@ function clearLog() {
     `;
 }
 
-// Persona is auto-selected: elderly_widow (Mrs. Kamala)
+// Persona is auto-selected: young_professional (Tech-savvy skeptic)
 // No user selection needed
 
 // Initialize on page load
