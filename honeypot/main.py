@@ -729,23 +729,35 @@ Respond naturally in 1-2 short sentences. Be conversational, slightly skeptical.
 If they mention money/bank/UPI, act interested but ask for details.
 Don't reveal you know it's a scam. Sound natural, use casual language."""
 
-                        # Try Gemini 2.0 Flash first using ASYNC method
-                        try:
-                            # User key supports: gemini-2.0-flash
-                            model = genai.GenerativeModel("gemini-2.0-flash")
-                            # Use native async method
-                            gemini_response = await model.generate_content_async(prompt)
-                        except Exception as e:
-                            print(f"⚠️ Gemini 2.0 Flash failed ({e}), trying gemini-pro...")
+                        # List of models to try in order of preference
+                        # based on what we saw available in the user's key
+                        candidate_models = [
+                            "models/gemini-2.0-flash", # Exact match from test_key.py
+                            "gemini-2.0-flash",        # Alias
+                            "gemini-1.5-flash",        # Standard
+                            "gemini-pro"               # Fallback
+                        ]
+
+                        gemini_response = None
+                        last_error = None
+
+                        for model_name in candidate_models:
                             try:
-                                model = genai.GenerativeModel("gemini-pro")
+                                # print(f"👉 Trying model: {model_name}...", flush=True) 
+                                model = genai.GenerativeModel(model_name)
                                 gemini_response = await model.generate_content_async(prompt)
-                            except Exception as e2:
-                                print(f"❌ All Gemini models failed: {e2}")
-                                raise e2
+                                print(f"✅ Success with {model_name}", flush=True)
+                                break # Stop if successful
+                            except Exception as e:
+                                # print(f"⚠️ {model_name} failed: {e}")
+                                last_error = e
+                        
+                        if not gemini_response:
+                            print(f"❌ All Gemini models failed. Last error: {last_error}", flush=True)
+                            raise last_error
 
                         response_text = gemini_response.text.strip()
-                        print(f"✅ Gemini response: {response_text}")
+                        print(f"✅ Gemini response: {response_text}", flush=True)
                         
                         await websocket.send_json({
                             "type": "ai_response",
