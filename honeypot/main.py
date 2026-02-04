@@ -516,8 +516,8 @@ async def hackathon_honeypot_api(
         from .voice import create_detector
         from .detection import EntityExtractor
         
-        # Auto-select persona for API requests (e.g., elderly_widow)
-        persona_id = "elderly_widow"
+        # Auto-select persona for API requests
+        persona_id = "young_professional"
         
         detector = create_detector()
         extractor = EntityExtractor()

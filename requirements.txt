@@ -4,8 +4,8 @@ uvicorn[standard]>=0.27.0
 python-dotenv>=1.0.0
 pydantic>=2.5.0
 
-# LLM
-langchain-groq>=0.1.0
+# LLM - Google Gemini (Primary)
+google-generativeai>=0.8.0
 
 # HTTP Client (for GUVI callback)
 httpx>=0.26.0
@@ -14,4 +14,3 @@ httpx>=0.26.0
 aiohttp>=3.9.0
 
 # Note: Redis, PostgreSQL, Celery removed for Render free tier
-# The app works with in-memory fallback
