@@ -723,14 +723,19 @@ Respond naturally in 1-2 short sentences. Be conversational, slightly skeptical.
 If they mention money/bank/UPI, act interested but ask for details.
 Don't reveal you know it's a scam. Sound natural, use casual language."""
 
-                        # Try Flash first, then fallback to Pro
+                        # Try Gemini 2.0 Flash first (Available for this key), then fallback
                         try:
-                            model = genai.GenerativeModel("gemini-1.5-flash")
+                            # User key supports: gemini-2.0-flash
+                            model = genai.GenerativeModel("gemini-2.0-flash")
                             gemini_response = model.generate_content(prompt)
                         except Exception as e:
-                            print(f"⚠️ Gemini Flash failed ({e}), trying gemini-pro...")
-                            model = genai.GenerativeModel("gemini-pro")
-                            gemini_response = model.generate_content(prompt)
+                            print(f"⚠️ Gemini 2.0 Flash failed ({e}), trying gemini-pro...")
+                            try:
+                                model = genai.GenerativeModel("gemini-pro")
+                                gemini_response = model.generate_content(prompt)
+                            except Exception as e2:
+                                print(f"❌ All Gemini models failed: {e2}")
+                                raise e2
 
                         response_text = gemini_response.text.strip()
                         print(f"✅ Gemini response: {response_text}")

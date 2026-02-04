@@ -19,7 +19,7 @@ load_dotenv()
 class Settings:
     """Application settings."""
     gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
-    gemini_model: str = "gemini-1.5-flash"  # Fast and capable
+    gemini_model: str = "gemini-2.0-flash"  # Updated to available model
     rate_limit_per_minute: int = 60  # Gemini has higher limits
     max_conversation_turns: int = 10
     host: str = "0.0.0.0"
