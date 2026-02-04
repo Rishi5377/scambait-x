@@ -623,8 +623,12 @@ async def websocket_voice(websocket: WebSocket, persona_id: str):
     # Create session
     from .voice import create_detector
     from .detection import EntityExtractor
-    
+    import google.generativeai as genai
+    import os
+
     session_id = str(uuid4())
+    print(f"🔌 Voice WebSocket connected: {session_id}")
+
     detector = create_detector(threshold=0.6)
     extractor = EntityExtractor()
     session = Session(persona_id=persona_id)
@@ -659,10 +663,15 @@ async def websocket_voice(websocket: WebSocket, persona_id: str):
     
     try:
         while True:
-            data = await websocket.receive_json()
+            try:
+                data = await websocket.receive_json()
+            except WebSocketDisconnect:
+                print(f"🔌 Client disconnected: {session_id}")
+                break
             
             if data.get("type") == "transcript":
                 transcript = data.get("content", "")
+                print(f"🎤 Received transcript: {transcript}")
                 
                 # Analyze for scam indicators
                 analysis = detector.analyze(transcript)
@@ -706,15 +715,10 @@ async def websocket_voice(websocket: WebSocket, persona_id: str):
                 
                 # Generate AI response - Direct Gemini call for reliability
                 try:
-                    # Use direct Gemini call instead of agent for faster/reliable responses
-                    import google.generativeai as genai
-                    import os
-                    
                     api_key = os.getenv("GEMINI_API_KEY", "")
                     if api_key:
                         genai.configure(api_key=api_key)
                         
-                        # Build context-aware prompt
                         persona_name = "Alex" if persona_id == "young_professional" else "the honeypot persona"
                         prompt = f"""You are {persona_name}, a young tech-savvy professional who just received a call. 
 You're skeptical but curious. The caller said: "{transcript}"
@@ -727,12 +731,12 @@ Don't reveal you know it's a scam. Sound natural, use casual language."""
                         try:
                             # User key supports: gemini-2.0-flash
                             model = genai.GenerativeModel("gemini-2.0-flash")
-                            gemini_response = model.generate_content(prompt)
+                            gemini_response = await asyncio.to_thread(model.generate_content, prompt)
                         except Exception as e:
                             print(f"⚠️ Gemini 2.0 Flash failed ({e}), trying gemini-pro...")
                             try:
                                 model = genai.GenerativeModel("gemini-pro")
-                                gemini_response = model.generate_content(prompt)
+                                gemini_response = await asyncio.to_thread(model.generate_content, prompt)
                             except Exception as e2:
                                 print(f"❌ All Gemini models failed: {e2}")
                                 raise e2
@@ -768,7 +772,11 @@ Don't reveal you know it's a scam. Sound natural, use casual language."""
     except WebSocketDisconnect:
         print(f"Voice session {session_id} disconnected")
     except Exception as e:
-        await websocket.send_json({"type": "error", "message": str(e)})
+        print(f"WebSocket Error: {e}")
+        try:
+            await websocket.send_json({"type": "error", "message": str(e)})
+        except:
+            pass
     finally:
         if session_id in voice_sessions:
             del voice_sessions[session_id]
