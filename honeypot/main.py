@@ -717,6 +717,8 @@ async def websocket_voice(websocket: WebSocket, persona_id: str):
                 try:
                     api_key = os.getenv("GEMINI_API_KEY", "")
                     if api_key:
+                        # Debug log (masked)
+                        print(f"🔑 Using Key: {api_key[:5]}...{api_key[-3:]}")
                         genai.configure(api_key=api_key)
                         
                         persona_name = "Alex" if persona_id == "young_professional" else "the honeypot persona"
@@ -727,16 +729,17 @@ Respond naturally in 1-2 short sentences. Be conversational, slightly skeptical.
 If they mention money/bank/UPI, act interested but ask for details.
 Don't reveal you know it's a scam. Sound natural, use casual language."""
 
-                        # Try Gemini 2.0 Flash first (Available for this key), then fallback
+                        # Try Gemini 2.0 Flash first using ASYNC method
                         try:
                             # User key supports: gemini-2.0-flash
                             model = genai.GenerativeModel("gemini-2.0-flash")
-                            gemini_response = await asyncio.to_thread(model.generate_content, prompt)
+                            # Use native async method
+                            gemini_response = await model.generate_content_async(prompt)
                         except Exception as e:
                             print(f"⚠️ Gemini 2.0 Flash failed ({e}), trying gemini-pro...")
                             try:
                                 model = genai.GenerativeModel("gemini-pro")
-                                gemini_response = await asyncio.to_thread(model.generate_content, prompt)
+                                gemini_response = await model.generate_content_async(prompt)
                             except Exception as e2:
                                 print(f"❌ All Gemini models failed: {e2}")
                                 raise e2
@@ -750,7 +753,7 @@ Don't reveal you know it's a scam. Sound natural, use casual language."""
                             "typing_delay": 500
                         })
                     else:
-                        print("❌ GEMINI_API_KEY not found!")
+                        print("❌ GEMINI_API_KEY not found in env!")
                         raise Exception("No API key")
                         
                 except Exception as e:
