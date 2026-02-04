@@ -713,7 +713,6 @@ async def websocket_voice(websocket: WebSocket, persona_id: str):
                     api_key = os.getenv("GEMINI_API_KEY", "")
                     if api_key:
                         genai.configure(api_key=api_key)
-                        model = genai.GenerativeModel("gemini-1.5-flash")
                         
                         # Build context-aware prompt
                         persona_name = "Alex" if persona_id == "young_professional" else "the honeypot persona"
@@ -724,7 +723,15 @@ Respond naturally in 1-2 short sentences. Be conversational, slightly skeptical.
 If they mention money/bank/UPI, act interested but ask for details.
 Don't reveal you know it's a scam. Sound natural, use casual language."""
 
-                        gemini_response = model.generate_content(prompt)
+                        # Try Flash first, then fallback to Pro
+                        try:
+                            model = genai.GenerativeModel("gemini-1.5-flash")
+                            gemini_response = model.generate_content(prompt)
+                        except Exception as e:
+                            print(f"⚠️ Gemini Flash failed ({e}), trying gemini-pro...")
+                            model = genai.GenerativeModel("gemini-pro")
+                            gemini_response = model.generate_content(prompt)
+
                         response_text = gemini_response.text.strip()
                         print(f"✅ Gemini response: {response_text}")
                         
