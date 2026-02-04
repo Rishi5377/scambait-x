@@ -704,25 +704,48 @@ async def websocket_voice(websocket: WebSocket, persona_id: str):
                         "reason": f"Detected: {analysis.scam_type} scam ({int(analysis.score * 100)}% confidence)"
                     })
                 
-                # Generate AI response - ALWAYS respond for live demo
-                # (Removed is_scammer_mode check so AI always engages)
+                # Generate AI response - Direct Gemini call for reliability
                 try:
-                    response, delay, _, _ = await agent.process_scammer_message(transcript)
-                    await websocket.send_json({
-                        "type": "ai_response",
-                        "content": response,
-                        "typing_delay": delay
-                    })
+                    # Use direct Gemini call instead of agent for faster/reliable responses
+                    import google.generativeai as genai
+                    import os
+                    
+                    api_key = os.getenv("GEMINI_API_KEY", "")
+                    if api_key:
+                        genai.configure(api_key=api_key)
+                        model = genai.GenerativeModel("gemini-1.5-flash")
+                        
+                        # Build context-aware prompt
+                        persona_name = "Alex" if persona_id == "young_professional" else "the honeypot persona"
+                        prompt = f"""You are {persona_name}, a young tech-savvy professional who just received a call. 
+You're skeptical but curious. The caller said: "{transcript}"
+
+Respond naturally in 1-2 short sentences. Be conversational, slightly skeptical. 
+If they mention money/bank/UPI, act interested but ask for details.
+Don't reveal you know it's a scam. Sound natural, use casual language."""
+
+                        gemini_response = model.generate_content(prompt)
+                        response_text = gemini_response.text.strip()
+                        print(f"✅ Gemini response: {response_text}")
+                        
+                        await websocket.send_json({
+                            "type": "ai_response",
+                            "content": response_text,
+                            "typing_delay": 500
+                        })
+                    else:
+                        print("❌ GEMINI_API_KEY not found!")
+                        raise Exception("No API key")
+                        
                 except Exception as e:
-                    print(f"Agent error: {e}")
+                    print(f"❌ Gemini error: {type(e).__name__}: {e}")
                     # Fallback response if LLM fails
                     fallback_responses = [
-                        "Oh my, that sounds very concerning! Tell me more...",
-                        "I'm so confused, can you explain that again?",
-                        "What should I do? This is so worrying!",
-                        "I don't understand these technical things. Please help me!",
-                        "Who did you say you were calling from?",
-                        "My Ramesh used to handle all these things... What should I do?",
+                        "Hmm interesting, tell me more about that?",
+                        "Wait, what exactly are you saying?",
+                        "I'm a bit confused, can you explain?",
+                        "Sorry, who did you say you're calling from?",
+                        "What's in it for me though?",
                     ]
                     import random
                     await websocket.send_json({
