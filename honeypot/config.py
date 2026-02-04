@@ -84,14 +84,22 @@ class GeminiClient:
         """Lazy initialization of Gemini model."""
         if self._model is None:
             import google.generativeai as genai
+            
+            if not self.settings.gemini_api_key:
+                print("❌ GEMINI_API_KEY not set!")
+                raise LLMError("GEMINI_API_KEY not configured")
+            
+            print(f"🔧 Configuring Gemini with key: {self.settings.gemini_api_key[:10]}...")
             genai.configure(api_key=self.settings.gemini_api_key)
+            
             self._model = genai.GenerativeModel(
                 model_name=self.settings.gemini_model,
                 generation_config={
-                    "temperature": 0.7,
-                    "max_output_tokens": 512,
+                    "temperature": 0.8,
+                    "max_output_tokens": 256,
                 }
             )
+            print(f"✅ Gemini model '{self.settings.gemini_model}' ready!")
         return self._model
     
     async def generate(self, prompt: str, system_prompt: str = "") -> str:

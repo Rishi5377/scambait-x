@@ -115,7 +115,12 @@ class ConversationAgent:
         # 5. Generate response
         try:
             raw_response = await self._generate_response(scammer_message)
-        except (RateLimitExceeded, LLMError):
+            print(f"✅ LLM Response: {raw_response[:100]}...")
+        except (RateLimitExceeded, LLMError) as e:
+            print(f"⚠️ LLM Error, using fallback: {e}")
+            raw_response = self._get_fallback_response()
+        except Exception as e:
+            print(f"❌ Unexpected error in LLM: {type(e).__name__}: {e}")
             raw_response = self._get_fallback_response()
         
         # 6. Humanize response
