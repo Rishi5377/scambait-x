@@ -647,13 +647,43 @@ async def websocket_voice(websocket: WebSocket, persona_id: str):
         "persona": list_personas()[persona_id]
     })
     
-    # Send AI greeting - AI answers the call first
-    greetings = {
-        "elderly_widow": "Hello? Who is this calling?",
-        "young_professional": "Yeah, hello?",
-        "small_business_owner": "Hello, this is Priya speaking."
-    }
-    greeting = greetings.get(persona_id, "Hello?")
+    # Send AI greeting - AI answers the call first (Dynamic Generation)
+    try:
+        api_key = os.getenv("GEMINI_API_KEY", "")
+        if api_key:
+            genai.configure(api_key=api_key)
+            persona_name = "Alex" if persona_id == "young_professional" else "the persona"
+            
+            # Prompt for initial greeting
+            greeting_prompt = f"""You are {persona_name}, a young tech-savvy professional. 
+            You just picked up a phone call from an unknown number.
+            Say a short, natural greeting (e.g., 'Hello?', 'Yeah?', 'Who's this?').
+            Do not be polite. Be casual and slightly annoyed/busy/skeptical."""
+            
+            # List of models to try (reuse robust list)
+            candidate_models = [
+                "models/gemini-2.5-flash", 
+                "models/gemini-2.0-flash", 
+                "gemini-2.0-flash",        
+                "gemini-1.5-flash",        
+                "gemini-pro"
+            ]
+
+            greeting_response = None
+            for model_name in candidate_models:
+                try:
+                    model = genai.GenerativeModel(model_name)
+                    greeting_response = await model.generate_content_async(greeting_prompt)
+                    break 
+                except Exception:
+                    continue
+            
+            greeting = greeting_response.text.strip() if greeting_response else "Hello?"
+        else:
+            greeting = "Hello?"
+    except Exception as e:
+        print(f"Greeting generation failed: {e}")
+        greeting = "Hello?"
     
     await websocket.send_json({
         "type": "ai_response",
