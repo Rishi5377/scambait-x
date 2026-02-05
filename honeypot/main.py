@@ -752,7 +752,20 @@ async def websocket_voice(websocket: WebSocket, persona_id: str):
                         genai.configure(api_key=api_key)
                         
                         persona_name = "Alex" if persona_id == "young_professional" else "the honeypot persona"
-                        prompt = f"""You are {persona_name}, a young tech-savvy professional who just received a call. 
+                        
+                        # Dynamic Prompting based on Scammer Mode
+                        if voice_sessions[session_id]["is_scammer_mode"]:
+                            # SCAM DETECTED: Play along as a victim to extract intelligence
+                            prompt = f"""You are {persona_name}, a regular person who is now worried because the caller just said there is a serious issue (virus, refund, blocking).
+The caller said: "{transcript}"
+
+GOAL: Play along. Act concerned/naive. Ask how to fix it. 
+Try to get them to give you specific details (UPI ID, Bank Account, URL, Phone Number) so we can catch them.
+Do NOT reveal you are an AI. Do NOT be skeptical anymore. Act like you believe them and want to solve the problem.
+Keep response short (1 sentence)."""
+                        else:
+                            # NORMAL/SUSPICIOUS: Skeptical professional
+                            prompt = f"""You are {persona_name}, a young tech-savvy professional who just received a call. 
 You're skeptical but curious. The caller said: "{transcript}"
 
 Respond naturally in 1-2 short sentences. Be conversational, slightly skeptical. 

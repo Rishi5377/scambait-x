@@ -206,8 +206,9 @@ function activateAIMode(reason) {
     callButton.style.borderColor = '#ff4444';
     callButton.style.background = 'rgba(255, 68, 68, 0.2)';
 
-    // Announce scammer detection
-    speakText("Oh my goodness! Tell me more about this...");
+    // Announce scammer detection - removed hardcoded speech
+    // speakText("Oh my goodness! Tell me more about this..."); 
+
 }
 
 // Simulate call forwarding (for normal callers)
