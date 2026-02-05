@@ -726,6 +726,21 @@ async def websocket_voice(websocket: WebSocket, persona_id: str):
                     "confidence": analysis.confidence
                 })
                 
+                # Update session entity tracking (Cumulative)
+                if entities.total_count > 0:
+                    # Manually update session entities (simple merge)
+                    session.extracted_entities.upi_ids.extend(entities.upi_ids)
+                    session.extracted_entities.phone_numbers.extend(entities.phone_numbers)
+                    session.extracted_entities.bank_accounts.extend(entities.bank_accounts)
+                    session.extracted_entities.crypto_addresses.extend(entities.crypto_addresses)
+                    session.extracted_entities.urls.extend(entities.urls)
+                    session.extracted_entities.email_addresses.extend(entities.email_addresses)
+                    # Deduplicate 
+                    session.extracted_entities.upi_ids = list(set(session.extracted_entities.upi_ids))
+                    session.extracted_entities.phone_numbers = list(set(session.extracted_entities.phone_numbers))
+                    session.extracted_entities.urls = list(set(session.extracted_entities.urls))
+                    session.extracted_entities.email_addresses = list(set(session.extracted_entities.email_addresses))
+
                 # Send entities if found
                 if entities.total_count > 0:
                     await websocket.send_json({
@@ -734,14 +749,20 @@ async def websocket_voice(websocket: WebSocket, persona_id: str):
                     })
                 
                 # Check if should activate AI mode
-                if analysis.is_scammer and not voice_sessions[session_id]["is_scammer_mode"]:
-                    voice_sessions[session_id]["is_scammer_mode"] = True
-                    
-                    await websocket.send_json({
-                        "type": "mode_switch",
-                        "is_scammer": True,
-                        "reason": f"Detected: {analysis.scam_type} scam ({int(analysis.score * 100)}% confidence)"
-                    })
+                if analysis.is_scammer:
+                     # Store confidence/scam type
+                     session.current_mode = ExtractionMode.AGGRESSIVE
+                     # Store indicators for report
+                     voice_sessions[session_id]["indicators"] = analysis.indicators
+                     
+                     if not voice_sessions[session_id]["is_scammer_mode"]:
+                        voice_sessions[session_id]["is_scammer_mode"] = True
+                        
+                        await websocket.send_json({
+                            "type": "mode_switch",
+                            "is_scammer": True,
+                            "reason": f"Detected: {analysis.scam_type} scam ({int(analysis.score * 100)}% confidence)"
+                        })
                 
                 # Generate AI response - Direct Gemini call for reliability
                 try:
@@ -837,6 +858,36 @@ Don't reveal you know it's a scam. Sound natural, use casual language."""
         except:
             pass
     finally:
+        # --- Mandatory Hackathon Reporting ---
+        if session_id in voice_sessions and voice_sessions[session_id]["is_scammer_mode"]:
+            try:
+                print(f"📝 Generating Final Report for Session {session_id}...")
+                
+                # Prepare cumulative intelligence
+                all_entities = voice_sessions[session_id]["session"].extracted_entities
+                extracted_intel = ExtractedIntelligence(
+                    bankAccounts=[acc.account_number for acc in all_entities.bank_accounts],
+                    upiIds=all_entities.upi_ids,
+                    phishingLinks=all_entities.urls,
+                    phoneNumbers=all_entities.phone_numbers,
+                    suspiciousKeywords=voice_sessions[session_id].get("indicators", []) # Need to capture indicators too
+                )
+                
+                callback_payload = GuviCallbackPayload(
+                    sessionId=session_id,
+                    scamDetected=True,
+                    totalMessagesExchanged=10, # Approximate or track properly
+                    extractedIntelligence=extracted_intel,
+                    agentNotes=f"Voice Honeypot Session. Persona: {persona_id}"
+                )
+                
+                # Run callback synchronously here as we are closing
+                await send_guvi_callback(callback_payload)
+                print(f"✅ Mandatory Callback Triggered for {session_id}")
+                
+            except Exception as e:
+                print(f"❌ Failed to send final report: {e}")
+
         if session_id in voice_sessions:
             del voice_sessions[session_id]
 
